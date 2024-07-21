@@ -15,6 +15,13 @@
 	"IsBetaVersion": false,
 	"IsExperimentalVersion": false,
 	"Installed": false,
+	"Modules": [
+		{
+			"Name": "LyraSplatoonRuntime",
+			"Type": "Runtime",
+			"LoadingPhase": "Default"
+		}
+	],
 	"ExplicitlyLoaded": true,
 	"BuiltInInitialFeatureState": "Active",
 	"Plugins": [
