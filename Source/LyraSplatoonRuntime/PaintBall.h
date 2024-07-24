@@ -35,7 +35,6 @@ private:
 	);
 
 protected:
-	// Called when target data is ready
 	UFUNCTION(BlueprintImplementableEvent)
 	void OnStaticMeshHitEvent(AActor* OtherActor);
 private:
