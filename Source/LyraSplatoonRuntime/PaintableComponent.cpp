@@ -26,6 +26,8 @@ void UPaintableComponent::BeginPlay()
 		UMaterialInstanceDynamic* DynamicMaterial = UMaterialInstanceDynamic::Create(PaintedMaterial, this);
 		DynamicMaterial->SetTextureParameterValue(TEXT("PaintedRenderTarget"), PaintingRenderTarget);
 		StaticMeshComponent->SetMaterial(0, DynamicMaterial);
+		StaticMeshComponent->SetRenderCustomDepth(true);
+		StaticMeshComponent->SetCustomDepthStencilValue(11);
 		
 	}
 	else

@@ -39,11 +39,14 @@ protected:
 	void OnStaticMeshHitEvent(AActor* OtherActor);
 private:
 
-	UPROPERTY(VisibleAnywhere, Category = "PaintBall")
+	UPROPERTY(EditAnywhere, Category = "PaintBall")
 	TObjectPtr<class UStaticMeshComponent> ProjectileSphere;
 
-	UPROPERTY(VisibleAnywhere, Category = "PaintBall")
+	UPROPERTY(EditAnywhere, Category = "PaintBall")
     TObjectPtr<class UProjectileMovementComponent> ProjectileMovement;
+
+	UPROPERTY(EditAnywhere,Category = "PaintBall")
+	float PaintRadius = 5.f;
 
 	
 };

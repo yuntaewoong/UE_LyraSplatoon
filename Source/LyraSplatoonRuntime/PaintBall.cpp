@@ -7,7 +7,9 @@
 #include "AbilitySystemComponent.h"
 #include "PaintableComponent.h"
 #include "Kismet/GameplayStatics.h"
-
+#include "PaintingVolume.h"
+#include "Engine/Canvas.h"
+#include "Kismet/KismetRenderingLibrary.h"
 APaintBall::APaintBall()
 {
     bReplicates = true;
@@ -55,47 +57,22 @@ void APaintBall::OnStaticMeshHit(
 
 	if(HasAuthority())
 	{//서버에서만 Hit판정을 진행합니다 
-		if (UPaintableComponent* PaintableComp = OtherActor->GetComponentByClass<UPaintableComponent>())
-		{//UPaintableComponent가 부착된 액터라면 다시 LineTrace를 수행한 후 대상 Mesh에 Painting적용
-			//LineTrace를 다시하는 이유: 충돌한 UV좌표를 얻기위함
-			UE_LOG(LogTemp, Log, TEXT("HIT"));
-			FVector Start = GetActorLocation();
-			FVector End = Start + (FVector::DownVector * 1000.0f);
-
-			FHitResult OutHit;
-
-			FCollisionQueryParams CollisionParams;
-			CollisionParams.bTraceComplex = true; //UV좌표를 얻기 위해서 bTraceComplex를 true로 설정
-			CollisionParams.bReturnFaceIndex = true;//충돌한 mesh의 face index를 리턴합니다
-			CollisionParams.AddIgnoredActor(this);
-
-			bool bHit = GetWorld()->LineTraceSingleByChannel(
-				OutHit,
-				Start,
-				End,
-				ECC_Visibility,
-				CollisionParams
-			);
-			if (bHit)
-			{
-				DrawDebugLine(GetWorld(), Start, End, FColor::Green, false, 1, 0, 1);
-				DrawDebugPoint(GetWorld(), OutHit.Location, 10, FColor::Red, false, 1);
-
-				FVector2D UV;
-				if (UGameplayStatics::FindCollisionUV(OutHit, 0, UV))
-				{
-					UE_LOG(LogTemp, Warning, TEXT("UV Found"));
-					PaintableComp->PaintCircle(UV, 5);
-				}
-
-			}
-			else
-			{
-				DrawDebugLine(GetWorld(), Start, End, FColor::Blue, false, 1, 0, 1);
+		if (UStaticMeshComponent* StaticMesh = Cast<UStaticMeshComponent>(OtherComp))
+		{//
+			if (!APaintingVolume::IsPaintableMesh(StaticMesh))
+				return;//페인팅 가능한 StaticMesh가 아니라면 return
+			DrawDebugPoint(GetWorld(), Hit.Location, 5.f, FColor::Red, false, 5.f);
+			
+			if (APaintingVolume* PaintingVolume = APaintingVolume::GetInstance(Hit.Location))
+			{//해당 영역이 속한 PaintingVolume인스턴스를 가져옵니다
+				DrawDebugPoint(GetWorld(), Hit.Location, 10.f, FColor::Green, false, 5.f);	
+				//그리기 연산을 수행합니다
+				PaintingVolume->Paint(Hit.Location);
 			}
 
 		}
 		
 	}
 }
+
 
