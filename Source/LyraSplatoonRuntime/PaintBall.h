@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
 
@@ -46,7 +46,7 @@ private:
     TObjectPtr<class UProjectileMovementComponent> ProjectileMovement;
 
 	UPROPERTY(EditAnywhere,Category = "PaintBall")
-	float PaintRadius = 5.f;
+	float PaintSize = 100.f;
 
 	
 };

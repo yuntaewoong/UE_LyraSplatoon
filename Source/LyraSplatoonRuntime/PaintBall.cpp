@@ -68,7 +68,7 @@ void APaintBall::OnStaticMeshHit(
 			{//해당 영역이 속한 PaintingVolume인스턴스를 가져옵니다
 				DrawDebugPoint(GetWorld(), Hit.Location, 10.f, FColor::Green, false, 5.f);	
 				//그리기 연산을 수행합니다
-				PaintingVolume->Paint(Hit.Location);
+				PaintingVolume->Paint(Hit.Location,PaintSize);
 			}
 			
 		}

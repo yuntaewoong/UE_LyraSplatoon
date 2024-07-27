@@ -7,6 +7,7 @@
 #include "Kismet/KismetRenderingLibrary.h"
 #include "Engine/OverlapResult.h"
 #include "Engine/TextureRenderTarget2D.h"
+#include "Engine/Texture.h"
 #include "Engine/Canvas.h"
 #include "Components/PostProcessComponent.h"
 #include "Kismet/GameplayStatics.h"
@@ -37,7 +38,7 @@ void APaintingVolume::BeginPlay()
 	PaintingRenderTarget = UKismetRenderingLibrary::CreateRenderTarget2D(this, RTWidth, RTHeight, RTF_RGBA16f);
 	UKismetRenderingLibrary::ClearRenderTarget2D(this, PaintingRenderTarget, FLinearColor::Black);
 
-
+    check(PostProcessMaterial);
     UMaterialInstanceDynamic* DynamicMaterial = UMaterialInstanceDynamic::Create(PostProcessMaterial, this);
 	DynamicMaterial->SetTextureParameterValue(FName(TEXT("RenderTarget")), PaintingRenderTarget);
     FVector BoxCenter = VolumeBox->GetComponentLocation();
@@ -80,14 +81,15 @@ void APaintingVolume::Tick(float DeltaTime)
 }
 
 
-void APaintingVolume::Paint(FVector Location)
+void APaintingVolume::Paint(FVector Location,float PaintSize)
 {
     UCanvas* Canvas;
 	FVector2D Size;
 	FDrawToRenderTargetContext Context;
 	UKismetRenderingLibrary::BeginDrawCanvasToRenderTarget(this, PaintingRenderTarget, Canvas, Size, Context);
-	
-	Canvas->K2_DrawBox(WorldPositionToUV(Location)*Size, FVector2D(15,15));
+    check(SplatTexture);
+    Canvas->K2_DrawTexture(SplatTexture, WorldPositionToUV(Location) * Size - FVector2D(PaintSize/2,PaintSize/2),
+        FVector2D(PaintSize, PaintSize), FVector2D(0, 0));
 	UKismetRenderingLibrary::EndDrawCanvasToRenderTarget(this, Context);
 }
 
