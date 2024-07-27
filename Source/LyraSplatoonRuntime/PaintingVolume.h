@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
 
@@ -20,28 +20,21 @@ protected:
 	virtual void BeginPlay() override;
 
 public:	
+	friend class UPaintingVolumeSubsystem;
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
-	static bool IsPaintableMesh(class UStaticMeshComponent* StaticMesh);
 	void Paint(FVector Location);
-	static APaintingVolume* GetInstance(FVector Location);//Location? ???? APaintingVolume??????? ?????(??? ????? ??? nullptr??)
 private:
-	bool FindAllStaticMeshesInVolume(TArray<class UStaticMeshComponent*>& OutStaticMeshes);//???? ?? StaticMesh????? ????
-	void SetMeshCanBePainted(class UStaticMeshComponent* MeshComponent);//?? Mesh? Painting??? Mesh? ?????
+	bool FindAllStaticMeshesInVolume(TArray<class UStaticMeshComponent*>& OutStaticMeshes);//볼륨안에 존재하는 모든 StaticMeshComponent를 검색합니다
 	FVector2D WorldPositionToUV(FVector Location);
 private:
-	const static int32 CUSTOM_DEPTH_STENICL_VALUE = 11;//???? ?? CustomDepthStencil????
-	//(%Material Editor? ?? ????%)
-
-	static TArray<APaintingVolume*> PaintingVolumeInstances;//APaintingVolume??? ????? ???? ?????
-
 	UPROPERTY(EditAnywhere, Category = "Components")
-	TObjectPtr<class UBoxComponent> VolumeBox;//????? ???? ??? ?????
+	TObjectPtr<class UBoxComponent> VolumeBox;//PaintingVolume의 영역을 정의합니다
 	UPROPERTY(EditAnywhere, Category = "Components")
 	TObjectPtr<class UMaterialInterface> PostProcessMaterial;
 
 	UPROPERTY()
-	TObjectPtr<class UTextureRenderTarget2D> PaintingRenderTarget;//?? ???? ??? ???
+	TObjectPtr<class UTextureRenderTarget2D> PaintingRenderTarget;//색칠결과가 업데이트되는 렌더타겟 텍스처입니다
 
 	UPROPERTY(EditAnywhere,Category = "Components")
 	int32 RTWidth = 4096;

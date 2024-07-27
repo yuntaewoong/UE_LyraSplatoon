@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 
 #include "PaintingVolume.h"
@@ -10,8 +10,7 @@
 #include "Engine/Canvas.h"
 #include "Components/PostProcessComponent.h"
 #include "Kismet/GameplayStatics.h"
-
-TArray<APaintingVolume*> APaintingVolume::PaintingVolumeInstances;
+#include "PaintingVolumeSubsystem.h"
 
 // Sets default values
 APaintingVolume::APaintingVolume()
@@ -29,7 +28,10 @@ void APaintingVolume::BeginPlay()
 	Super::BeginPlay();
 
     //자기 자신을 인스턴스목록에 추가합니다
-    PaintingVolumeInstances.Add(this);
+    UPaintingVolumeSubsystem* PaintingVolumeSubsystem = GetWorld()->GetGameInstance()->GetSubsystem<UPaintingVolumeSubsystem>();
+    check(PaintingVolumeSubsystem);//PaintingVolumeSubsystem이 만들어져야 합니다, 생성이 안되었을시 런타임에러 강제발생
+    
+    PaintingVolumeSubsystem->AddInstance(this);
 
     //색칠정보를 기록할 RenderTarget을 동적생성합니다
 	PaintingRenderTarget = UKismetRenderingLibrary::CreateRenderTarget2D(this, RTWidth, RTHeight, RTF_RGBA16f);
@@ -64,7 +66,7 @@ void APaintingVolume::BeginPlay()
 	{
 		for (int32 i = 0; i < StaticMeshes.Num(); i++)
 		{
-			SetMeshCanBePainted(StaticMeshes[i]);
+			PaintingVolumeSubsystem->SetMeshCanBePainted(StaticMeshes[i]);
 		}
 	}
 
@@ -77,10 +79,6 @@ void APaintingVolume::Tick(float DeltaTime)
 	
 }
 
-bool APaintingVolume::IsPaintableMesh(UStaticMeshComponent* StaticMesh)
-{
-    return StaticMesh->CustomDepthStencilValue == CUSTOM_DEPTH_STENICL_VALUE;//인풋으로 주어진 StaticMesh가 Painting이 가능한 Mesh면 true
-}
 
 void APaintingVolume::Paint(FVector Location)
 {
@@ -93,26 +91,6 @@ void APaintingVolume::Paint(FVector Location)
 	UKismetRenderingLibrary::EndDrawCanvasToRenderTarget(this, Context);
 }
 
-APaintingVolume* APaintingVolume::GetInstance(FVector Location)
-{
-    for (int32 i = 0; i < PaintingVolumeInstances.Num(); i++)
-    {
-        FVector BoxCenter = PaintingVolumeInstances[i]->VolumeBox->GetComponentLocation();
-        FVector BoxExtent = PaintingVolumeInstances[i]->VolumeBox->GetScaledBoxExtent();
-
-        // Calculate the minimum and maximum bounds of the box
-        FVector BoxMin = BoxCenter - BoxExtent;
-        FVector BoxMax = BoxCenter + BoxExtent;
-
-        if ((Location.X >= BoxMin.X && Location.X <= BoxMax.X &&
-            Location.Y >= BoxMin.Y && Location.Y <= BoxMax.Y &&
-            Location.Z >= BoxMin.Z && Location.Z <= BoxMax.Z))
-        {
-            return PaintingVolumeInstances[i];
-        }
-    }
-    return nullptr;
-}
 
 bool APaintingVolume::FindAllStaticMeshesInVolume(TArray<UStaticMeshComponent*>& OutStaticMeshes)
 {
@@ -157,11 +135,6 @@ bool APaintingVolume::FindAllStaticMeshesInVolume(TArray<UStaticMeshComponent*>&
 	return true;
 }
 
-void APaintingVolume::SetMeshCanBePainted(UStaticMeshComponent* MeshComponent)
-{
-    MeshComponent->SetRenderCustomDepth(true);//CustomDepth를 기록하도록 합니다
-	MeshComponent->SetCustomDepthStencilValue(CUSTOM_DEPTH_STENICL_VALUE);//후처리를 위해서 CustomStencil값을 GBuffer에 렌더링합니다
-}
 
 FVector2D APaintingVolume::WorldPositionToUV(FVector Location)
 {//렌더타겟은 2차원이므로 3차원인 Location을 2차원 UV좌표로 변환하는 로직(이 로직은 항상 M_PaintPostProcess머티리얼에서 사용되는 로직과 동일해야함)
