@@ -33,7 +33,8 @@ private:
 		FVector NormalImpulse,
 		const FHitResult& Hit
 	);
-
+	UFUNCTION(NetMulticast,Reliable)
+	void MulticastRPCPaint(FVector Location);
 protected:
 	UFUNCTION(BlueprintImplementableEvent)
 	void OnStaticMeshHitEvent(AActor* OtherActor);

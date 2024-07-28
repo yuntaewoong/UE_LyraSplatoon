@@ -1,4 +1,4 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
+﻿// Copyright Epic Games, Inc. All Rights Reserved.
 
 using UnrealBuildTool;
 
@@ -10,6 +10,7 @@ public class LyraSplatoonRuntime : ModuleRules
 		
 		PublicIncludePaths.AddRange(
 			new string[] {
+                
 				// ... add public include paths required here ...
 			}
 			);
@@ -25,10 +26,10 @@ public class LyraSplatoonRuntime : ModuleRules
 		PublicDependencyModuleNames.AddRange(
 			new string[]
 			{
-				"Core",
-                "GameplayTags",
-                "GameplayTasks",
-                "GameplayAbilities",
+                "Core",
+                "LyraGame",
+                "ModularGameplay",
+                "CommonGame",
 				// ... add other public dependencies that you statically link with here ...
 			}
 			);
@@ -37,10 +38,22 @@ public class LyraSplatoonRuntime : ModuleRules
 		PrivateDependencyModuleNames.AddRange(
 			new string[]
 			{
-				"CoreUObject",
-				"Engine",
-				"Slate",
-				"SlateCore",
+                "CoreUObject",
+                "Engine",
+                "Slate",
+                "SlateCore",
+                "GameplayTags",
+                "GameplayTasks",
+                "GameplayAbilities",
+                "GameplayMessageRuntime",
+                "CommonUI",
+                "UMG",
+                "DataRegistry",
+                "AsyncMixin",
+                "EnhancedInput",
+                "GameSubtitles",
+                "DeveloperSettings",
+                "AIModule"
 				// ... add private dependencies that you statically link with here ...	
 			}
 			);

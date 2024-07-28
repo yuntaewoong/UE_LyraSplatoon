@@ -36,8 +36,10 @@ void APaintingVolume::BeginPlay()
 
     //색칠정보를 기록할 RenderTarget을 동적생성합니다
 	PaintingRenderTarget = UKismetRenderingLibrary::CreateRenderTarget2D(this, RTWidth, RTHeight, RTF_RGBA16f);
+    ensure(PaintingRenderTarget);
+    PaintingRenderTarget->SRGB = true;
 	UKismetRenderingLibrary::ClearRenderTarget2D(this, PaintingRenderTarget, FLinearColor::Black);
-
+    
     check(PostProcessMaterial);
     UMaterialInstanceDynamic* DynamicMaterial = UMaterialInstanceDynamic::Create(PostProcessMaterial, this);
 	DynamicMaterial->SetTextureParameterValue(FName(TEXT("RenderTarget")), PaintingRenderTarget);
@@ -81,15 +83,17 @@ void APaintingVolume::Tick(float DeltaTime)
 }
 
 
-void APaintingVolume::Paint(FVector Location,float PaintSize)
+void APaintingVolume::Paint(FVector Location,float PaintSize,FColor PaintColor)
 {
     UCanvas* Canvas;
 	FVector2D Size;
 	FDrawToRenderTargetContext Context;
 	UKismetRenderingLibrary::BeginDrawCanvasToRenderTarget(this, PaintingRenderTarget, Canvas, Size, Context);
     check(SplatTexture);
-    Canvas->K2_DrawTexture(SplatTexture, WorldPositionToUV(Location) * Size - FVector2D(PaintSize/2,PaintSize/2),
-        FVector2D(PaintSize, PaintSize), FVector2D(0, 0));
+    Canvas->K2_DrawTexture(
+        SplatTexture, WorldPositionToUV(Location) * Size - FVector2D(PaintSize/2,PaintSize/2),
+        FVector2D(PaintSize, PaintSize), FVector2D(0, 0),FVector2D::UnitVector,PaintColor
+    );
 	UKismetRenderingLibrary::EndDrawCanvasToRenderTarget(this, Context);
 }
 
