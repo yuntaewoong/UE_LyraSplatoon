@@ -83,7 +83,7 @@ void APaintingVolume::Tick(float DeltaTime)
 }
 
 
-void APaintingVolume::Paint(FVector Location,float PaintSize,FColor PaintColor)
+void APaintingVolume::Paint(FVector Location,float PaintSize,FLinearColor PaintColor)
 {
     UCanvas* Canvas;
 	FVector2D Size;

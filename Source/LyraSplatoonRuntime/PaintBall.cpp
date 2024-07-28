@@ -11,6 +11,8 @@
 #include "Engine/Canvas.h"
 #include "Kismet/KismetRenderingLibrary.h"
 #include "Player/LyraPlayerState.h"
+#include "Teams/LyraTeamSubsystem.h"
+#include "Teams/LyraTeamDisplayAsset.h"
 
 APaintBall::APaintBall()
 {
@@ -61,16 +63,30 @@ void APaintBall::OnStaticMeshHit(
 	{//서버에서만 Hit판정을 진행합니다 
 		if (UStaticMeshComponent* StaticMesh = Cast<UStaticMeshComponent>(OtherComp))
 		{//Static메시에 대한 충돌처리를 진행합니다
-			DrawDebugPoint(GetWorld(), Hit.Location, 5.f, FColor::Red, false, 5.f);
-			
-			//서버의 충돌정보를 이용해서 클라이언트에 충돌사실을 알립니다
-			MulticastRPCPaint(Hit.Location);
+			if (APawn* InstigatorActor = GetInstigator())
+			{
+				if (ALyraPlayerState* LyraPS = InstigatorActor->GetPlayerState<ALyraPlayerState>())
+				{
+					ULyraTeamSubsystem* LyraTeamSubsystem = GetWorld()->GetSubsystem<ULyraTeamSubsystem>();
+					if (LyraTeamSubsystem)
+					{
+						ULyraTeamDisplayAsset* TeamDisplayAsset = 
+							LyraTeamSubsystem->GetTeamDisplayAsset(LyraPS->GetTeamId(), LyraPS->GetTeamId());
+						if (TeamDisplayAsset)
+						{
+							DrawDebugPoint(GetWorld(), Hit.Location, 5.f, FColor::Red, false, 5.f);
+							//서버의 충돌정보를 이용해서 클라이언트에 충돌사실을 알립니다
+							MulticastRPCPaint(Hit.Location,*TeamDisplayAsset->ColorParameters.Find(FName(TEXT("TeamColor"))));
+						}
+					}
+				}
+			}
 		}
 		Destroy();//모든 연산을 수행했으므로 파괴합니다
 	}
 }
 
-void APaintBall::MulticastRPCPaint_Implementation(FVector Location)
+void APaintBall::MulticastRPCPaint_Implementation(FVector Location,FLinearColor Color)
 {
 	UPaintingVolumeSubsystem* PaintingVolumeSubSystem =
 		GetWorld()->GetGameInstance()->GetSubsystem<UPaintingVolumeSubsystem>();
@@ -78,18 +94,11 @@ void APaintBall::MulticastRPCPaint_Implementation(FVector Location)
 	
 	if (APaintingVolume* PaintingVolume = PaintingVolumeSubSystem->GetPaintingVolumeInstance(Location))
 	{//해당 영역이 속한 PaintingVolume인스턴스를 가져옵니다
-		if (APawn* InstigatorActor = GetInstigator())
-		{
-			if (ALyraPlayerState* LyraPS = InstigatorActor->GetPlayerState<ALyraPlayerState>())
-			{
-				DrawDebugPoint(GetWorld(), Location, 10.f, FColor::Green, false, 5.f);	
-				FColor TeamColor = LyraPS->GetTeamId() == 1 ? FColor::Red : FColor::Blue;
-
-				//그리기 연산을 수행합니다
-				PaintingVolume->Paint(Location,PaintSize,TeamColor);
+		
+		DrawDebugPoint(GetWorld(), Location, 10.f, FColor::Green, false, 5.f);
+		//그리기 연산을 수행합니다
+		PaintingVolume->Paint(Location,PaintSize,Color);
 				
-			}
-		}
 	}
 }
 
