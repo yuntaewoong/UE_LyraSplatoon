@@ -83,15 +83,15 @@ void APaintingVolume::Tick(float DeltaTime)
 }
 
 
-void APaintingVolume::Paint(FVector Location,float PaintSize,FLinearColor PaintColor)
+void APaintingVolume::Paint(FVector Location,float PaintSize,FLinearColor PaintColor,UTexture* PaintTexture)
 {
     UCanvas* Canvas;
 	FVector2D Size;
 	FDrawToRenderTargetContext Context;
 	UKismetRenderingLibrary::BeginDrawCanvasToRenderTarget(this, PaintingRenderTarget, Canvas, Size, Context);
-    check(SplatTexture);
+    check(PaintTexture);
     Canvas->K2_DrawTexture(
-        SplatTexture, WorldPositionToUV(Location) * Size - FVector2D(PaintSize/2,PaintSize/2),
+        PaintTexture, WorldPositionToUV(Location) * Size - FVector2D(PaintSize/2,PaintSize/2),
         FVector2D(PaintSize, PaintSize), FVector2D(0, 0),FVector2D::UnitVector,PaintColor
     );
 	UKismetRenderingLibrary::EndDrawCanvasToRenderTarget(this, Context);

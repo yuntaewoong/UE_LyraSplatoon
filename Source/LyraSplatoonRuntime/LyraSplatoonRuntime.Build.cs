@@ -28,8 +28,10 @@ public class LyraSplatoonRuntime : ModuleRules
 			{
                 "Core",
                 "LyraGame",
-                "ModularGameplay",
-                "CommonGame",
+                "GameplayAbilities", 
+				"GameplayTags",		 
+				"GameplayTasks",
+                "AIModule",			
 				// ... add other public dependencies that you statically link with here ...
 			}
 			);
@@ -42,10 +44,7 @@ public class LyraSplatoonRuntime : ModuleRules
                 "Engine",
                 "Slate",
                 "SlateCore",
-                "GameplayTags",
-                "GameplayTasks",
                 "GameplayAbilities",
-                "GameplayMessageRuntime",
                 "CommonUI",
                 "UMG",
                 "DataRegistry",

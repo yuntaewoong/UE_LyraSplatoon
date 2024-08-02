@@ -39,6 +39,8 @@ protected:
 	UFUNCTION(BlueprintImplementableEvent)
 	void OnStaticMeshHitEvent(AActor* OtherActor);
 private:
+	UPROPERTY(EditAnywhere, Category = "Components")
+	TObjectPtr<class UTexture> SplatTexture;
 
 	UPROPERTY(EditAnywhere, Category = "PaintBall")
 	TObjectPtr<class UStaticMeshComponent> ProjectileSphere;

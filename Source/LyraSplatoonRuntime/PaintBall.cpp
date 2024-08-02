@@ -8,11 +8,12 @@
 #include "Kismet/GameplayStatics.h"
 #include "PaintingVolume.h"
 #include "PaintingVolumeSubsystem.h"
-#include "Engine/Canvas.h"
-#include "Kismet/KismetRenderingLibrary.h"
 #include "Player/LyraPlayerState.h"
 #include "Teams/LyraTeamSubsystem.h"
 #include "Teams/LyraTeamDisplayAsset.h"
+#include "Engine/Canvas.h"
+#include "Kismet/KismetRenderingLibrary.h"
+
 
 APaintBall::APaintBall()
 {
@@ -90,6 +91,7 @@ void APaintBall::MulticastRPCPaint_Implementation(FVector Location,FLinearColor 
 {
 	UPaintingVolumeSubsystem* PaintingVolumeSubSystem =
 		GetWorld()->GetGameInstance()->GetSubsystem<UPaintingVolumeSubsystem>();
+	check(SplatTexture);
 	check(PaintingVolumeSubSystem);
 	
 	if (APaintingVolume* PaintingVolume = PaintingVolumeSubSystem->GetPaintingVolumeInstance(Location))
@@ -97,7 +99,7 @@ void APaintBall::MulticastRPCPaint_Implementation(FVector Location,FLinearColor 
 		
 		DrawDebugPoint(GetWorld(), Location, 10.f, FColor::Green, false, 5.f);
 		//그리기 연산을 수행합니다
-		PaintingVolume->Paint(Location,PaintSize,Color);
+		PaintingVolume->Paint(Location,PaintSize,Color,SplatTexture);
 				
 	}
 }
