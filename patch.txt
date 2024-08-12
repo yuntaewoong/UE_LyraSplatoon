@@ -1,0 +1,78 @@
+diff --git a/LyraGame/Equipment/LyraEquipmentInstance.h b/LyraGame/Equipment/LyraEquipmentInstance.h
+index 9556e68..9e13f4d 100644
+--- a/LyraGame/Equipment/LyraEquipmentInstance.h
++++ b/LyraGame/Equipment/LyraEquipmentInstance.h
+@@ -1,4 +1,4 @@
+-// Copyright Epic Games, Inc. All Rights Reserved.
++﻿// Copyright Epic Games, Inc. All Rights Reserved.
+ 
+ #pragma once
+ 
+@@ -17,7 +17,7 @@ struct FLyraEquipmentActorToSpawn;
+  * A piece of equipment spawned and applied to a pawn
+  */
+ UCLASS(BlueprintType, Blueprintable)
+-class ULyraEquipmentInstance : public UObject
++class LYRAGAME_API ULyraEquipmentInstance : public UObject
+ {
+ 	GENERATED_BODY()
+ 
+diff --git a/LyraGame/Equipment/LyraGameplayAbility_FromEquipment.h b/LyraGame/Equipment/LyraGameplayAbility_FromEquipment.h
+index 7230e3c..6e79bfd 100644
+--- a/LyraGame/Equipment/LyraGameplayAbility_FromEquipment.h
++++ b/LyraGame/Equipment/LyraGameplayAbility_FromEquipment.h
+@@ -1,4 +1,4 @@
+-// Copyright Epic Games, Inc. All Rights Reserved.
++﻿// Copyright Epic Games, Inc. All Rights Reserved.
+ 
+ #pragma once
+ 
+@@ -15,7 +15,7 @@ class ULyraInventoryItemInstance;
+  * An ability granted by and associated with an equipment instance
+  */
+ UCLASS()
+-class ULyraGameplayAbility_FromEquipment : public ULyraGameplayAbility
++class LYRAGAME_API ULyraGameplayAbility_FromEquipment : public ULyraGameplayAbility
+ {
+ 	GENERATED_BODY()
+ 
+diff --git a/LyraGame/GameModes/LyraGameMode.cpp b/LyraGame/GameModes/LyraGameMode.cpp
+index 50535a2..4635ea6 100644
+--- a/LyraGame/GameModes/LyraGameMode.cpp
++++ b/LyraGame/GameModes/LyraGameMode.cpp
+@@ -80,7 +80,7 @@ const ULyraPawnData* ALyraGameMode::GetPawnDataForController(const AController*
+ void ALyraGameMode::InitGame(const FString& MapName, const FString& Options, FString& ErrorMessage)
+ {
+ 	Super::InitGame(MapName, Options, ErrorMessage);
+-
++	
+ 	// Wait for the next frame to give time to initialize startup settings
+ 	GetWorld()->GetTimerManager().SetTimerForNextTick(this, &ThisClass::HandleMatchAssignmentIfNotExpectingOne);
+ }
+@@ -452,7 +452,6 @@ bool ALyraGameMode::ControllerCanRestart(AController* Controller)
+ void ALyraGameMode::InitGameState()
+ {
+ 	Super::InitGameState();
+-
+ 	// Listen for the experience load to complete	
+ 	ULyraExperienceManagerComponent* ExperienceComponent = GameState->FindComponentByClass<ULyraExperienceManagerComponent>();
+ 	check(ExperienceComponent);
+diff --git a/LyraGame/Weapons/LyraWeaponInstance.h b/LyraGame/Weapons/LyraWeaponInstance.h
+index d3b4d52..8559d41 100644
+--- a/LyraGame/Weapons/LyraWeaponInstance.h
++++ b/LyraGame/Weapons/LyraWeaponInstance.h
+@@ -1,4 +1,4 @@
+-// Copyright Epic Games, Inc. All Rights Reserved.
++﻿// Copyright Epic Games, Inc. All Rights Reserved.
+ 
+ #pragma once
+ 
+@@ -20,7 +20,7 @@ class UInputDeviceProperty;
+  * A piece of equipment representing a weapon spawned and applied to a pawn
+  */
+ UCLASS()
+-class ULyraWeaponInstance : public ULyraEquipmentInstance
++class LYRAGAME_API ULyraWeaponInstance : public ULyraEquipmentInstance
+ {
+ 	GENERATED_BODY()
+ 
