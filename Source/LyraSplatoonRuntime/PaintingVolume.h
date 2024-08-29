@@ -24,6 +24,7 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 	void Paint(FVector Location,float PaintSize,FLinearColor PaintColor,UTexture* PaintTexture);
+	class UTextureRenderTarget2D* GetPaintingRenderTarget() const { return PaintingRenderTarget; }
 private:
 	bool FindAllStaticMeshesInVolume(TArray<class UStaticMeshComponent*>& OutStaticMeshes);//볼륨안에 존재하는 모든 StaticMeshComponent를 검색합니다
 	FVector2D WorldPositionToUV(FVector Location);

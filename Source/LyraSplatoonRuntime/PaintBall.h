@@ -25,6 +25,9 @@ public:
 	virtual void GetLifetimeReplicatedProps(TArray< FLifetimeProperty >& OutLifetimeProps) const override;
 
 private:
+	
+
+
 	UFUNCTION()
     void OnStaticMeshHit(
 		UPrimitiveComponent* HitComponent,
@@ -39,7 +42,10 @@ protected:
 	UFUNCTION(BlueprintImplementableEvent)
 	void OnStaticMeshHitEvent(AActor* OtherActor);
 private:
-	UPROPERTY(EditAnywhere, Category = "Components")
+	UPROPERTY(EditAnywhere,Category = "PaintBall")
+	TObjectPtr<class UMaterialInterface> TeamMaterial;
+
+	UPROPERTY(EditAnywhere, Category = "PaintBall")
 	TObjectPtr<class UTexture> SplatTexture;
 
 	UPROPERTY(EditAnywhere, Category = "PaintBall")

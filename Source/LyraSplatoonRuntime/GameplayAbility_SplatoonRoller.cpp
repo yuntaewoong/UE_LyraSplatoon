@@ -23,7 +23,7 @@ void UGameplayAbility_SplatoonRoller::ActivateAbility(const FGameplayAbilitySpec
 	//바닥 칠하는 로직:
 	//       1. 롤러의 끝쪽에서 SphereTrace 여러개 호출
 	//       2. 충돌한다면 해당 렌더타겟에 원하는 텍스처로 Paint호출
-
+	
 	if (HasAuthority(&ActivationInfo))
 	{
 		for (int32 i = 0; i < NumTrace; i++)

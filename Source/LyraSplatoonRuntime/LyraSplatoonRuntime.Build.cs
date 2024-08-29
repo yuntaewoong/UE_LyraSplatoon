@@ -31,10 +31,11 @@ public class LyraSplatoonRuntime : ModuleRules
                 "GameplayAbilities", 
 				"GameplayTags",		 
 				"GameplayTasks",
-                "AIModule",			
+                "AIModule",
+				"ComputeShader",
 				// ... add other public dependencies that you statically link with here ...
 			}
-			);
+		);
 			
 		
 		PrivateDependencyModuleNames.AddRange(
@@ -52,17 +53,9 @@ public class LyraSplatoonRuntime : ModuleRules
                 "EnhancedInput",
                 "GameSubtitles",
                 "DeveloperSettings",
-                "AIModule"
+                "AIModule",
 				// ... add private dependencies that you statically link with here ...	
 			}
-			);
-		
-		
-		DynamicallyLoadedModuleNames.AddRange(
-			new string[]
-			{
-				// ... add any modules that your module loads dynamically here ...
-			}
-			);
-	}
+		);
+    }
 }

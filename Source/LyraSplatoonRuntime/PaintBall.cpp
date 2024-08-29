@@ -36,6 +36,35 @@ void APaintBall::BeginPlay()
 {
 	Super::BeginPlay();
 	
+	if (HasAuthority())
+	{
+		check(TeamMaterial);
+		check(ProjectileSphere);
+		UMaterialInstanceDynamic* DynamicMaterial = UMaterialInstanceDynamic::Create(TeamMaterial, this);
+		if (DynamicMaterial)
+		{
+			if (APawn* InstigatorActor = GetInstigator())
+			{
+				if (ALyraPlayerState* LyraPS = InstigatorActor->GetPlayerState<ALyraPlayerState>())
+				{
+					ULyraTeamSubsystem* LyraTeamSubsystem = GetWorld()->GetSubsystem<ULyraTeamSubsystem>();
+					if (LyraTeamSubsystem)
+					{
+						ULyraTeamDisplayAsset* TeamDisplayAsset =
+							LyraTeamSubsystem->GetTeamDisplayAsset(LyraPS->GetTeamId(), LyraPS->GetTeamId());
+						if (TeamDisplayAsset)
+						{//페인트 볼의 색상을 자기 팀의 색상으로 설정합니다
+							DynamicMaterial->SetVectorParameterValue(FName(TEXT("TeamColor")),*TeamDisplayAsset->ColorParameters.Find(FName(TEXT("TeamColor"))));
+							ProjectileSphere->SetMaterial(0, DynamicMaterial);
+						}
+					}
+				}
+			}
+		}
+	}
+	
+	
+	
 }
 
 void APaintBall::Tick(float DeltaTime)
@@ -99,6 +128,7 @@ void APaintBall::MulticastRPCPaint_Implementation(FVector Location,FLinearColor 
 		
 		DrawDebugPoint(GetWorld(), Location, 10.f, FColor::Green, false, 5.f);
 		//그리기 연산을 수행합니다
+		
 		PaintingVolume->Paint(Location,PaintSize,Color,SplatTexture);
 				
 	}

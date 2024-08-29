@@ -35,9 +35,8 @@ void APaintingVolume::BeginPlay()
     PaintingVolumeSubsystem->AddInstance(this);
 
     //색칠정보를 기록할 RenderTarget을 동적생성합니다
-	PaintingRenderTarget = UKismetRenderingLibrary::CreateRenderTarget2D(this, RTWidth, RTHeight, RTF_RGBA16f);
+	PaintingRenderTarget = UKismetRenderingLibrary::CreateRenderTarget2D(this, RTWidth, RTHeight, RTF_RGBA8);
     ensure(PaintingRenderTarget);
-    PaintingRenderTarget->SRGB = true;
 	UKismetRenderingLibrary::ClearRenderTarget2D(this, PaintingRenderTarget, FLinearColor::Black);
     
     check(PostProcessMaterial);
@@ -90,6 +89,7 @@ void APaintingVolume::Paint(FVector Location,float PaintSize,FLinearColor PaintC
 	FDrawToRenderTargetContext Context;
 	UKismetRenderingLibrary::BeginDrawCanvasToRenderTarget(this, PaintingRenderTarget, Canvas, Size, Context);
     check(PaintTexture);
+    UE_LOG(LogTemp, Warning, TEXT("%f %f"), Size.X,Size.Y);
     Canvas->K2_DrawTexture(
         PaintTexture, WorldPositionToUV(Location) * Size - FVector2D(PaintSize/2,PaintSize/2),
         FVector2D(PaintSize, PaintSize), FVector2D(0, 0),FVector2D::UnitVector,PaintColor
