@@ -92,7 +92,7 @@ void UGameplayAbility_SplatoonRoller::MulticastRPCPaintRect_Implementation(FVect
 		
 		DrawDebugPoint(GetWorld(), Center, 10.f, FColor::Green, false, 5.f);
 		//그리기 연산을 수행합니다
-		PaintingVolume->Paint(Center,Width,Color,RectTexture);
+		PaintingVolume->Paint(Center,FVector::UpVector,Width,Color,RectTexture);
 				
 	}
 }

@@ -36,7 +36,7 @@ private:
 
 	TArray<class APaintingVolume*> PaintingVolumes;//게임 중 존재하는 PaintingVolume의 배열
 
-	float PaintedRate[3] = { 0.f,0.f,0.f };//팀의 색칠율을 저장하는 배열 [1]은 팀1 [2]은 팀2
+	float PaintedRate[3][6];//팀의 색칠율을 저장하는 배열 [1]은 팀1 [2]은 팀2, 6면의 대한 각각의 정보 저장
 
 
 

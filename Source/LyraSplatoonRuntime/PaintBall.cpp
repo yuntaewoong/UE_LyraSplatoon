@@ -106,7 +106,8 @@ void APaintBall::OnStaticMeshHit(
 						{
 							DrawDebugPoint(GetWorld(), Hit.Location, 5.f, FColor::Red, false, 5.f);
 							//서버의 충돌정보를 이용해서 클라이언트에 충돌사실을 알립니다
-							MulticastRPCPaint(Hit.Location,*TeamDisplayAsset->ColorParameters.Find(FName(TEXT("TeamColor"))));
+							UE_LOG(LogTemp, Warning, TEXT("%s"), *Hit.Normal.ToCompactString());
+							MulticastRPCPaint(Hit.Location,Hit.Normal,*TeamDisplayAsset->ColorParameters.Find(FName(TEXT("TeamColor"))));
 						}
 					}
 				}
@@ -116,7 +117,7 @@ void APaintBall::OnStaticMeshHit(
 	}
 }
 
-void APaintBall::MulticastRPCPaint_Implementation(FVector Location,FLinearColor Color)
+void APaintBall::MulticastRPCPaint_Implementation(FVector Location,FVector PointNormal,FLinearColor Color)
 {
 	UPaintingVolumeSubsystem* PaintingVolumeSubSystem =
 		GetWorld()->GetGameInstance()->GetSubsystem<UPaintingVolumeSubsystem>();
@@ -129,7 +130,7 @@ void APaintBall::MulticastRPCPaint_Implementation(FVector Location,FLinearColor 
 		DrawDebugPoint(GetWorld(), Location, 10.f, FColor::Green, false, 5.f);
 		//그리기 연산을 수행합니다
 		
-		PaintingVolume->Paint(Location,PaintSize,Color,SplatTexture);
+		PaintingVolume->Paint(Location,PointNormal,PaintSize,Color,SplatTexture);
 				
 	}
 }

@@ -37,7 +37,7 @@ private:
 		const FHitResult& Hit
 	);
 	UFUNCTION(NetMulticast,Reliable)
-	void MulticastRPCPaint(FVector Location,FLinearColor Color);
+	void MulticastRPCPaint(FVector Location,FVector PointNormal,FLinearColor Color);
 protected:
 	UFUNCTION(BlueprintImplementableEvent)
 	void OnStaticMeshHitEvent(AActor* OtherActor);
