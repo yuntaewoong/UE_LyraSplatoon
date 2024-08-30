@@ -90,7 +90,6 @@ void APaintingVolume::BeginPlay()
     DynamicMaterial->SetScalarParameterValue(FName(TEXT("BoxMinZ")), BoxMin.Z);
 
 
-
     APostProcessVolume* PostProcessVolume = Cast<APostProcessVolume>(
         UGameplayStatics::GetActorOfClass(GetWorld(), APostProcessVolume::StaticClass())
     );
@@ -206,16 +205,22 @@ FVector2D APaintingVolume::GetUV(FVector Location,ETextureNormalDirection Textur
     {
     case ETextureNormalDirection::UP:
     case ETextureNormalDirection::DOWN://xy평면
-		return FVector2D((Location.X - BoxMin.X)/BoxMin2BoxMax.X ,
-			(Location.Y - BoxMin.Y)/BoxMin2BoxMax.Y);
+		return FVector2D(
+            (Location.X - BoxMin.X)/ BoxMin2BoxMax.X ,
+			(Location.Y - BoxMin.Y)/ BoxMin2BoxMax.Y
+        );
     case ETextureNormalDirection::FRONT:
-    case ETextureNormalDirection::BACK://xz평면
-        return FVector2D((Location.X - BoxMin.X) / BoxMin2BoxMax.X,
-            (Location.Z - BoxMin.Z) / BoxMin2BoxMax.Z);
+    case ETextureNormalDirection::BACK://yz평면
+        return FVector2D(
+            (Location.Y - BoxMin.Y) / BoxMin2BoxMax.Y,
+            (Location.Z - BoxMin.Z) / BoxMin2BoxMax.Z
+        );
     case ETextureNormalDirection::LEFT:
-    case ETextureNormalDirection::RIGHT://yz평면
-        return FVector2D((Location.Y - BoxMin.Y) / BoxMin2BoxMax.Y,
-            (Location.Z - BoxMin.Z) / BoxMin2BoxMax.Z);
+    case ETextureNormalDirection::RIGHT://xz평면
+        return FVector2D(
+            (Location.X - BoxMin.X) / BoxMin2BoxMax.X,
+            (Location.Z - BoxMin.Z) / BoxMin2BoxMax.Z
+        );
     }
     ensure(true);//어느 경우에도 속하지 못한경우 에러메시지를 출력합니다
     return FVector2D::ZeroVector;
