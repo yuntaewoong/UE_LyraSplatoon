@@ -63,7 +63,7 @@ private:
 	TObjectPtr<class UTextureRenderTarget2D> PaintingRenderTarget[static_cast<int8>(ETextureNormalDirection::MAX)];
 
 	UPROPERTY(EditAnywhere,Category = "Components")
-	int32 RTVividness;//렌더타겟의 선명도를 정의합니다.(이 값이 높을수록 선명해집니다)
+	float RTVividness;//렌더타겟의 선명도를 정의합니다.(이 값이 높을수록 선명해집니다)
 
 
 	const FString TextureNames[static_cast<int8>(ETextureNormalDirection::MAX)] = 

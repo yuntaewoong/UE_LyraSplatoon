@@ -106,7 +106,6 @@ void APaintBall::OnStaticMeshHit(
 						{
 							DrawDebugPoint(GetWorld(), Hit.Location, 5.f, FColor::Red, false, 5.f);
 							//서버의 충돌정보를 이용해서 클라이언트에 충돌사실을 알립니다
-							UE_LOG(LogTemp, Warning, TEXT("%s"), *Hit.Normal.ToCompactString());
 							MulticastRPCPaint(Hit.Location,Hit.Normal,*TeamDisplayAsset->ColorParameters.Find(FName(TEXT("TeamColor"))));
 						}
 					}

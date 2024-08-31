@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Subsystems/GameInstanceSubsystem.h"
+#include "PaintingVolume.h"
 #include "PaintingVolumeSubsystem.generated.h"
 
 /**
@@ -26,17 +27,17 @@ public:
 	UFUNCTION(BlueprintCallable)
 	int32 GetPaintRate(int32 TeamID);//팀의 색칠율을 반환합니다(0~100)
 private:
-	void ComputePaintRate();//색칠율을 계산합니다
+	UFUNCTION()
+	void ComputePaintRate(ETextureNormalDirection TextureDir);//색칠율을 계산합니다
 
 
 private:
-
 	const int32 CUSTOM_DEPTH_STENICL_VALUE = 11;//색칠 post process에 사용되는 CUSTOMDEPTHSTENCIL값
 	//Material Editor에서 동일한 값을 사용해야 정상동작함
 
 	TArray<class APaintingVolume*> PaintingVolumes;//게임 중 존재하는 PaintingVolume의 배열
 
-	float PaintedRate[3][6];//팀의 색칠율을 저장하는 배열 [1]은 팀1 [2]은 팀2, 6면의 대한 각각의 정보 저장
+	float PaintedRate[3][static_cast<int8>(ETextureNormalDirection::MAX)];//팀의 색칠율을 저장하는 배열 [1]은 팀1 [2]은 팀2, 6면의 대한 각각의 정보 저장
 
 
 
