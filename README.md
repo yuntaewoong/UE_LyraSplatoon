@@ -1,3 +1,5 @@
+<img src = "Image/Sample.png">
+
 # UE_LyraSplatoon
 언리얼 엔진에서 제공하는 샘플 프로젝트인 [Lyra Starter game](https://www.unrealengine.com/marketplace/en-US/product/lyra)을 확장 개발한 게임입니다.  
 닌텐도 플랫폼에서 발매된 게임인 `Splatoon`시리즈의 독특한 기능들을 라이라의 코드베이스를 기반으로 구현했습니다.
