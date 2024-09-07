@@ -33,7 +33,9 @@ public class LyraSplatoonRuntime : ModuleRules
 				"GameplayTasks",
                 "AIModule",
 				"ComputeShader",
-				// ... add other public dependencies that you statically link with here ...
+                 "RHI",                   
+				"RenderCore",            
+				"Renderer", 
 			}
 		);
 			

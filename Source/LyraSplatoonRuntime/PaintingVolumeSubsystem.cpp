@@ -6,10 +6,13 @@
 #include "Components/BoxComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "ComputeShader/Public/NumPixelPaintedComputeShader/NumPixelPaintedComputeShader.h"
+#include "Engine/TextureRenderTarget2DArray.h"
 #include "Teams/LyraTeamSubsystem.h"
 #include "Teams/LyraTeamDisplayAsset.h"
 #include "Engine/World.h"
 #include "TimerManager.h"
+#include "PhysicsEngine/BodySetup.h"
+
 
 void UPaintingVolumeSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
@@ -58,9 +61,19 @@ void UPaintingVolumeSubsystem::AddInstance(APaintingVolume* VolumeInstance)
 
 void UPaintingVolumeSubsystem::SetMeshCanBePainted(UStaticMeshComponent* MeshComponent)
 {
+    check(MeshComponent);
     MeshComponent->SetRenderCustomDepth(true);//CustomDepth를 기록하도록 합니다
-	MeshComponent->SetCustomDepthStencilValue(CUSTOM_DEPTH_STENICL_VALUE);//후처리를 위해서 CustomStencil값을 GBuffer에 렌더링합니다
+    MeshComponent->SetCustomDepthStencilValue(CUSTOM_DEPTH_STENICL_VALUE);//후처리를 위해서 CustomStencil값을 GBuffer에 렌더링합니다
+
+    UBodySetup* BodySetup = MeshComponent->GetStaticMesh()->GetBodySetup();
+    if (BodySetup)
+    {//ComplxeAsSimple을 사용하도록 재설정합니다
+        BodySetup->CollisionTraceFlag = CTF_UseComplexAsSimple;
+        MeshComponent->RecreatePhysicsState();
+    }
 }
+
+
 
 int32 UPaintingVolumeSubsystem::GetPaintRate(int32 TeamID)
 {
@@ -87,12 +100,12 @@ void UPaintingVolumeSubsystem::ComputePaintRate(ETextureNormalDirection TextureD
         
         ////컴퓨트 쉐이더 파라미터
         FNumPixelPaintedComputeShaderDispatchParams Params;
-        Params.InputTexture = PaintingVolumes[0]->GetPaintingRenderTarget(TextureDir);
+        Params.InputTexture = PaintingVolumes[0]->GetPaintingRenderTarget2DArray(TextureDir);
         Params.TargetColor1 = *RedTeamDisplayAsset->ColorParameters.Find(FName(TEXT("TeamColor")));
         Params.TargetColor2 = *BlueTeamDisplayAsset->ColorParameters.Find(FName(TEXT("TeamColor")));
         Params.TextureSize = FIntPoint(
-            PaintingVolumes[0]->GetPaintingRenderTarget(TextureDir)->SizeX,
-            PaintingVolumes[0]->GetPaintingRenderTarget(TextureDir)->SizeY
+            PaintingVolumes[0]->GetPaintingRenderTarget2DArray(TextureDir)->SizeX,
+            PaintingVolumes[0]->GetPaintingRenderTarget2DArray(TextureDir)->SizeY
         );
         //컴퓨트 셰이더 호출 후 람다함수를 이용해서 결과값을 저장합니다
         FNumPixelPaintedComputeShaderInterface::Dispatch(Params,
@@ -113,51 +126,6 @@ void UPaintingVolumeSubsystem::ComputePaintRate(ETextureNormalDirection TextureD
                 GetWorld()->GetTimerManager().SetTimer(TimerHandle, TimerDelegate, Delay,false,Delay);
             }
         );
-
-        //    // Render target resource를 가져옵니다.
-        //FTextureRenderTargetResource* RenderTargetResource = PaintingVolumes[0]->GetPaintingRenderTarget()->GameThread_GetRenderTargetResource();
-        //if (!RenderTargetResource)
-        //{
-        //    UE_LOG(LogTemp, Warning, TEXT("Failed to get RenderTargetResource!"));
-        //    return;
-        //}
-
-        //// 텍스처의 크기 가져오기
-        //int32 TextureWidth = PaintingVolumes[0]->GetPaintingRenderTarget()->SizeX;
-        //int32 TextureHeight = PaintingVolumes[0]->GetPaintingRenderTarget()->SizeY;
-
-        //// 텍스처 데이터를 저장할 메모리 할당 (RGBA8 형식으로 가정)
-        //TArray<FColor> PixelData;
-        //PixelData.SetNumUninitialized(TextureWidth * TextureHeight);
-
-        //// 텍스처 데이터를 CPU 메모리로 복사
-        //RenderTargetResource->ReadPixels(PixelData);
-
-        //// 특정 색상에 해당하는 픽셀 수를 세는 변수
-        //int32 SpecificColorPixelCount = 0;
-        //FLinearColor SpecificColor = *RedTeamDisplayAsset->ColorParameters.Find(FName(TEXT("TeamColor")));; 
-
-        //// 모든 픽셀을 순회하며 특정 색상인지 확인
-        //for (int32 Y = 0; Y < TextureHeight; Y++)
-        //{
-        //    for (int32 X = 0; X < TextureWidth; X++)
-        //    {
-        //        // 픽셀 색상 가져오기
-        //        FLinearColor PixelColor = PixelData[Y * TextureWidth + X];
-
-        //        // 특정 색상과 비교
-        //        if (PixelColor == SpecificColor)
-        //        {
-        //            SpecificColorPixelCount++;
-        //        }
-        //    }
-        //}
-        
-        
-        
-
-
-        
     }
 }
 

@@ -7,11 +7,14 @@
 #include "Kismet/KismetRenderingLibrary.h"
 #include "Engine/OverlapResult.h"
 #include "Engine/TextureRenderTarget2D.h"
+#include "Engine/TextureRenderTarget2DArray.h"
 #include "Engine/Texture.h"
 #include "Engine/Canvas.h"
+#include "TextureRenderTarget2DArrayResource.h"
 #include "Components/PostProcessComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "PaintingVolumeSubsystem.h"
+#include "RHI.h"
 
 // Sets default values
 APaintingVolume::APaintingVolume()
@@ -38,56 +41,71 @@ void APaintingVolume::BeginPlay()
     check(PostProcessMaterial);
     UMaterialInstanceDynamic* DynamicMaterial = UMaterialInstanceDynamic::Create(PostProcessMaterial, this);
 
-
     FVector BoxCenter = VolumeBox->GetComponentLocation();
     FVector BoxExtent = VolumeBox->GetScaledBoxExtent();
-
     FVector BoxMin = BoxCenter - BoxExtent;
     FVector BoxMax = BoxCenter + BoxExtent;
     FVector BoxMin2BoxMax = BoxMax - BoxMin;
-    //색칠정보를 기록할 RenderTarget을 동적생성합니다.(6방향)
+
+    
+    // 시스템에서 지원하는 최대 렌더타겟 해상도를 가져옵니다(대부분의 GPU는 16384x16384까지 지원합니다)
+    
+    int32 MaxTextureWidth = 16384;
+    int32 MaxTextureHeight = MaxTextureWidth;
+    
+    //상,하,앞,뒤,좌,우 6방향에 대응하는 렌더타겟 텍스쳐를 생성합니다
     for (int32 i = 0; i < static_cast<int8>(ETextureNormalDirection::MAX); i++)
     {
-
-
-        //렌더타겟 텍스쳐 생성
+        int32 WidthResolution = 0;
+        int32 HeightResolution = 0;
+        ETextureRenderTargetFormat PaintingRenderTargetFormat = RTF_RGBA8;
+        FLinearColor ClearColor = FLinearColor::Black;
         switch (static_cast<ETextureNormalDirection>(i))
         {
         case ETextureNormalDirection::UP:
         case ETextureNormalDirection::DOWN://xy평면 사용
-            PaintingRenderTarget[i] = UKismetRenderingLibrary::CreateRenderTarget2D(
-                this, BoxMin2BoxMax.X * RTVividness, BoxMin2BoxMax.Y * RTVividness, RTF_RGBA8);
-            break;
-        case ETextureNormalDirection::LEFT:
-        case ETextureNormalDirection::RIGHT://yz평면 사용
-            PaintingRenderTarget[i] = UKismetRenderingLibrary::CreateRenderTarget2D(
-                this, BoxMin2BoxMax.Y * RTVividness, BoxMin2BoxMax.Z * RTVividness, RTF_RGBA8);
+            WidthResolution = static_cast<int32>(BoxMin2BoxMax.X * RTVividness * NumSliceXY);
+            HeightResolution = static_cast<int32>(BoxMin2BoxMax.Y * RTVividness);
+            checkf(WidthResolution <= MaxTextureWidth, TEXT("%d Exceeded Max Texture XY Width Resolution, Please Adjust RTVividness Value"),WidthResolution);
+            checkf(HeightResolution <= MaxTextureHeight, TEXT("%d Exceeded Max Texture XY Height Resolution, Please Adjust RTVividness Value"),HeightResolution);
             break;
         case ETextureNormalDirection::FRONT:
         case ETextureNormalDirection::BACK://xz평면 사용
-            PaintingRenderTarget[i] = UKismetRenderingLibrary::CreateRenderTarget2D(
-                this, BoxMin2BoxMax.X * RTVividness, BoxMin2BoxMax.Z * RTVividness, RTF_RGBA8);
+            WidthResolution = static_cast<int32>(BoxMin2BoxMax.X * RTVividness * NumSliceXZ);
+            HeightResolution = static_cast<int32>(BoxMin2BoxMax.Z * RTVividness);
+            checkf(WidthResolution <= MaxTextureWidth, TEXT("%d Exceeded Max Texture XY Width Resolution, Please Adjust RTVividness Value"),WidthResolution);
+            checkf(HeightResolution <= MaxTextureHeight, TEXT("%d Exceeded Max Texture XY Height Resolution, Please Adjust RTVividness Value"),HeightResolution);
+            break;
+        case ETextureNormalDirection::LEFT:
+        case ETextureNormalDirection::RIGHT://yz평면 사용
+            WidthResolution = static_cast<int32>(BoxMin2BoxMax.Y * RTVividness * NumSliceYZ);
+            HeightResolution = static_cast<int32>(BoxMin2BoxMax.Z * RTVividness);
+            checkf(WidthResolution <= MaxTextureWidth, TEXT("%d Exceeded Max Texture XY Width Resolution, Please Adjust RTVividness Value"),WidthResolution);
+            checkf(HeightResolution <= MaxTextureHeight, TEXT("%d Exceeded Max Texture XY Height Resolution, Please Adjust RTVividness Value"),HeightResolution);
             break;
         }
-
         
-        ensure(PaintingRenderTarget[i]);
-        UKismetRenderingLibrary::ClearRenderTarget2D(this, PaintingRenderTarget[i], FLinearColor::Black);
+        PaintingRenderTargets[i] = UKismetRenderingLibrary::CreateRenderTarget2D(
+            this, WidthResolution, HeightResolution,PaintingRenderTargetFormat,ClearColor
+        );
 
+        ensure(PaintingRenderTargets[i]);
         //Material Instance 텍스쳐 파라미터 지정
-        DynamicMaterial->SetTextureParameterValue(FName(TextureNames[i]), PaintingRenderTarget[i]);
+        DynamicMaterial->SetTextureParameterValue(FName(TextureNames[i]), PaintingRenderTargets[i]);
     }
-	
-    
-    
-    
-    
+
+    DynamicMaterial->SetScalarParameterValue(FName(TEXT("NumSliceXY")), NumSliceXY);
+    DynamicMaterial->SetScalarParameterValue(FName(TEXT("NumSliceYZ")), NumSliceYZ);
+    DynamicMaterial->SetScalarParameterValue(FName(TEXT("NumSliceXZ")), NumSliceXZ);
+
     DynamicMaterial->SetScalarParameterValue(FName(TEXT("BoxMaxX")), BoxMax.X);
     DynamicMaterial->SetScalarParameterValue(FName(TEXT("BoxMaxY")), BoxMax.Y);
     DynamicMaterial->SetScalarParameterValue(FName(TEXT("BoxMaxZ")), BoxMax.Z);
     DynamicMaterial->SetScalarParameterValue(FName(TEXT("BoxMinX")), BoxMin.X);
     DynamicMaterial->SetScalarParameterValue(FName(TEXT("BoxMinY")), BoxMin.Y);
     DynamicMaterial->SetScalarParameterValue(FName(TEXT("BoxMinZ")), BoxMin.Z);
+
+
 
 
     APostProcessVolume* PostProcessVolume = Cast<APostProcessVolume>(
@@ -101,7 +119,7 @@ void APaintingVolume::BeginPlay()
 
 	TArray<UStaticMeshComponent*> StaticMeshes;
 	if (FindAllStaticMeshesInVolume(StaticMeshes))
-	{
+	{//Painting Volume안에 있는 StaticMesh들을 색칠할 수 있도록 설정합니다
 		for (int32 i = 0; i < StaticMeshes.Num(); i++)
 		{
 			PaintingVolumeSubsystem->SetMeshCanBePainted(StaticMeshes[i]);
@@ -114,34 +132,56 @@ void APaintingVolume::BeginPlay()
 void APaintingVolume::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	
+
+#if WITH_EDITOR
+    if (bDebugDrawSliceArea)
+        DebugDrawSlicedPaintingArea();
+#endif
 }
 
 
 void APaintingVolume::Paint(FVector Location,FVector PointNormal,float PaintSize,FLinearColor PaintColor,UTexture* PaintTexture)
 {
-    //PointNormal에 따라 그려야 할 렌더타겟을 선택합니다.
+    //PointNormal에 따라 Texture의 방향을 결정합니다
     ETextureNormalDirection TextureDirection =  GetTextureNormalDirection(PointNormal);
-    //해당 렌더타겟에 텍스쳐를 그립니다
+    
+    
     UCanvas* Canvas;
-	FVector2D Size;
+	FVector2D Size;//렌더타겟 크기(X해상도 * Y해상도)
 	FDrawToRenderTargetContext Context;
 	UKismetRenderingLibrary::BeginDrawCanvasToRenderTarget(
         this,
-        PaintingRenderTarget[static_cast<int8>(TextureDirection)],
+        PaintingRenderTargets[static_cast<int8>(TextureDirection)],//
         Canvas,
         Size,
         Context
     );
     check(PaintTexture);
-    UE_LOG(LogTemp,Warning,TEXT("Paint to %s"),*TextureNames[static_cast<int8>(TextureDirection)]);
-    FVector2D AdjustedSize = FVector2D(PaintSize, PaintSize);
+    FVector2D AdjustedSize = FVector2D(PaintSize * RTVividness, PaintSize * RTVividness);
 
-    UE_LOG(LogTemp, Warning, TEXT("Size : %s"), *Size.ToString());
+    int32 CurrentSlice = GetCurrentSlice(Location, TextureDirection);//Slice번호[0,NumSlice-1]
+    FVector2D UV = GetUV(Location, TextureDirection);//Slice내부 UV좌표
+    FVector2D ScreenPos;
+    switch (TextureDirection)
+    {
+    case ETextureNormalDirection::UP:
+    case ETextureNormalDirection::DOWN://xy평면
+        ScreenPos = UV * FVector2D(Size.X / NumSliceXY, Size.Y) + FVector2D(Size.X / NumSliceXY * CurrentSlice,0);
+        break;
+    case ETextureNormalDirection::FRONT:
+    case ETextureNormalDirection::BACK://yz평면
+        ScreenPos = UV * FVector2D(Size.X / NumSliceYZ, Size.Y) + FVector2D(Size.X / NumSliceYZ * CurrentSlice,0);
+        break;
+    case ETextureNormalDirection::LEFT:
+    case ETextureNormalDirection::RIGHT://xz평면
+        ScreenPos = UV * FVector2D(Size.X / NumSliceXZ, Size.Y) + FVector2D(Size.X / NumSliceXZ * CurrentSlice,0);
+        break;
+    }
     Canvas->K2_DrawTexture(
-        PaintTexture, GetUV(Location,TextureDirection) * Size - AdjustedSize/2,
+        PaintTexture, ScreenPos - AdjustedSize/2,
         AdjustedSize, FVector2D(0, 0),FVector2D::UnitVector,PaintColor
     );
+
 	UKismetRenderingLibrary::EndDrawCanvasToRenderTarget(this, Context);
 }
 
@@ -222,8 +262,37 @@ FVector2D APaintingVolume::GetUV(FVector Location,ETextureNormalDirection Textur
             (Location.Z - BoxMin.Z) / BoxMin2BoxMax.Z
         );
     }
-    ensure(true);//어느 경우에도 속하지 못한경우 에러메시지를 출력합니다
+    ensure(false);//어느 경우에도 속하지 못한경우 에러메시지를 출력합니다
     return FVector2D::ZeroVector;
+}
+
+int32 APaintingVolume::GetCurrentSlice(FVector Location, ETextureNormalDirection TextureDirection) const
+{
+    //Location에 맞는 Slice번호를 반환합니다[0,NumSlice-1]
+    FVector BoxCenter = VolumeBox->GetComponentLocation();
+    FVector BoxExtent = VolumeBox->GetScaledBoxExtent();
+
+    FVector BoxMin = BoxCenter - BoxExtent;
+    FVector BoxMax = BoxCenter + BoxExtent;
+    FVector BoxMin2BoxMax = BoxMax - BoxMin;
+
+    float LenSliceXY = BoxMin2BoxMax.Z / NumSliceXY;//xy평면의 Slice를 결정하는 단위 길이
+    float LenSliceYZ = BoxMin2BoxMax.X / NumSliceYZ;//yz평면의 Slice를 결정하는 단위 길이
+    float LenSliceXZ = BoxMin2BoxMax.Y / NumSliceXZ;//xz평면의 Slice를 결정하는 단위 길이
+    switch (TextureDirection)
+    {
+    case ETextureNormalDirection::UP:
+    case ETextureNormalDirection::DOWN://xy평면(Z값에 따라 Slice번호가 달라집니다)
+		return static_cast<int32>((Location.Z - BoxMin.Z) / LenSliceXY);
+    case ETextureNormalDirection::FRONT:
+    case ETextureNormalDirection::BACK://yz평면(X값에 따라 Slice번호가 달라집니다)
+        return static_cast<int32>((Location.X - BoxMin.X) / LenSliceYZ);
+    case ETextureNormalDirection::LEFT:
+    case ETextureNormalDirection::RIGHT://xz평면(Y값에 따라 Slice번호가 달라집니다)
+        return static_cast<int32>((Location.Y - BoxMin.Y) / LenSliceXZ);
+    }
+    ensure(false);
+    return 0;
 }
 
 const ETextureNormalDirection APaintingVolume::GetTextureNormalDirection(FVector Normal)
@@ -258,7 +327,40 @@ const ETextureNormalDirection APaintingVolume::GetTextureNormalDirection(FVector
     if (MaxDot == DotRight) return ETextureNormalDirection::RIGHT;
     if (MaxDot == DotLeft) return ETextureNormalDirection::LEFT;
 
-    ensure(true);//어느 경우에도 속하지 못한경우 에러메시지를 출력합니다
+    ensure(false);//어느 경우에도 속하지 못한경우 에러메시지를 출력합니다
     return ETextureNormalDirection::MAX;
+}
+
+void APaintingVolume::DebugDrawSlicedPaintingArea()
+{//디버깅용, 나뉘어진 Painting영역을 시각화합니다
+    FVector BoxExtent = VolumeBox->GetScaledBoxExtent();
+    FVector BoxCenter = VolumeBox->GetComponentLocation();
+
+
+    FVector BoxMin = BoxCenter - BoxExtent;
+    FVector BoxMax = BoxCenter + BoxExtent;
+    FVector BoxMin2BoxMax = BoxMax - BoxMin;
+
+
+    FVector CellSize(BoxMin2BoxMax.X / NumSliceYZ, BoxMin2BoxMax.Y / NumSliceXZ, BoxMin2BoxMax.Z / NumSliceXY);
+
+    for (int32 i = 0; i <= NumSliceYZ; i++)
+    {
+        for (int32 j = 0; j <= NumSliceXZ; j++)
+        {
+            for (int32 k = 0; k <= NumSliceXY; k++)
+            {
+                FVector Start = BoxMin + FVector(i * CellSize.X, j * CellSize.Y, k * CellSize.Z);
+                FVector EndX = Start + FVector(CellSize.X, 0, 0);
+                FVector EndY = Start + FVector(0, CellSize.Y, 0);
+                FVector EndZ = Start + FVector(0, 0, CellSize.Z);
+
+                DrawDebugLine(GetWorld(), Start, EndX, FColor::Green, false, -1.0f, 0, 1.0f);
+                DrawDebugLine(GetWorld(), Start, EndY, FColor::Green, false, -1.0f, 0, 1.0f);
+                DrawDebugLine(GetWorld(), Start, EndZ, FColor::Green, false, -1.0f, 0, 1.0f);
+            }
+        }
+    }
+
 }
 
